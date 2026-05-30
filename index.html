@@ -1,0 +1,1652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EchoFrame Labs — Memory, Heard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  /* ─── TOKENS ──────────────────────────────────────────── */
+  :root {
+    --bg:        #080705;
+    --bg-lift:   #0f0d0a;
+    --bg-card:   #141210;
+    --border:    rgba(196,146,58,0.15);
+    --border-hi: rgba(196,146,58,0.4);
+    --amber:     #C4923A;
+    --amber-dim: #8a6428;
+    --cream:     #E8DCC8;
+    --cream-dim: #9e9181;
+    --muted:     #5a5248;
+    --white:     #FAF7F2;
+    --r:         6px;
+  }
+
+  /* ─── RESET ───────────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--cream);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    line-height: 1.7;
+    overflow-x: hidden;
+    cursor: default;
+  }
+  img { display: block; max-width: 100%; }
+  a { color: inherit; text-decoration: none; }
+
+  /* ─── NOISE OVERLAY ───────────────────────────────────── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+    opacity: .5;
+  }
+
+  /* ─── TYPOGRAPHY ──────────────────────────────────────── */
+  .serif { font-family: 'Cormorant Garamond', serif; }
+  .mono  { font-family: 'DM Mono', monospace; font-size: .75em; letter-spacing: .08em; }
+
+  h1, h2, h3 { font-family: 'Cormorant Garamond', serif; font-weight: 300; line-height: 1.1; }
+
+  .eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: .68rem;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 1.2rem;
+  }
+
+  /* ─── LAYOUT HELPERS ──────────────────────────────────── */
+  .container { max-width: 1160px; margin: 0 auto; padding: 0 2rem; }
+  .section   { padding: 120px 0; }
+  .section-sm { padding: 80px 0; }
+
+  .divider {
+    width: 40px; height: 1px;
+    background: var(--amber);
+    margin: 1.5rem 0;
+  }
+  .divider-center { margin: 1.5rem auto; }
+
+  /* ─── BUTTONS ─────────────────────────────────────────── */
+  .btn {
+    display: inline-flex; align-items: center; gap: .6rem;
+    padding: .9rem 2rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: .85rem;
+    font-weight: 400;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    border: 1px solid var(--border-hi);
+    background: transparent;
+    color: var(--cream);
+    cursor: pointer;
+    transition: all .3s ease;
+    border-radius: 2px;
+  }
+  .btn:hover { background: rgba(196,146,58,.08); border-color: var(--amber); color: var(--amber); }
+  .btn-filled {
+    background: var(--amber);
+    border-color: var(--amber);
+    color: var(--bg);
+    font-weight: 500;
+  }
+  .btn-filled:hover { background: #d4a24a; border-color: #d4a24a; color: var(--bg); }
+
+  .btn svg { width: 16px; height: 16px; }
+
+  /* ─── NAV ─────────────────────────────────────────────── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    padding: 1.4rem 2rem;
+    display: flex; align-items: center; justify-content: space-between;
+    background: rgba(8,7,5,.8);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    transition: all .3s;
+  }
+  .nav-logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.2rem;
+    font-weight: 400;
+    letter-spacing: .04em;
+    color: var(--cream);
+  }
+  .nav-logo span { color: var(--amber); }
+  .nav-links { display: flex; gap: 2.5rem; align-items: center; }
+  .nav-links a {
+    font-size: .8rem;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--cream-dim);
+    transition: color .2s;
+  }
+  .nav-links a:hover { color: var(--cream); }
+  .nav-cta {
+    font-size: .75rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    padding: .55rem 1.4rem;
+    border: 1px solid var(--border-hi);
+    color: var(--amber);
+    transition: all .2s;
+    border-radius: 2px;
+  }
+  .nav-cta:hover { background: var(--amber); color: var(--bg); }
+
+  /* ─── HERO ────────────────────────────────────────────── */
+  #hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column; justify-content: flex-end;
+    position: relative;
+    overflow: hidden;
+    padding: 0 2rem 8rem;
+  }
+
+  /* Simulated cinematic hero background */
+  .hero-bg {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 60% 60% at 65% 40%, rgba(80,52,18,.6) 0%, transparent 70%),
+      radial-gradient(ellipse 80% 50% at 20% 70%, rgba(40,30,15,.8) 0%, transparent 60%),
+      linear-gradient(160deg, #1a1208 0%, #080705 60%, #0c0b08 100%);
+    z-index: 0;
+  }
+
+  /* Stylised wood-grain SVG lines */
+  .hero-texture {
+    position: absolute; inset: 0; z-index: 1; opacity: .06;
+    background-image: repeating-linear-gradient(
+      92deg,
+      transparent,
+      transparent 3px,
+      rgba(196,146,58,.4) 3px,
+      rgba(196,146,58,.4) 4px
+    );
+  }
+
+  /* Floating product silhouette */
+  .hero-product {
+    position: absolute;
+    right: 8%; top: 50%; transform: translateY(-50%);
+    width: 420px; height: 300px;
+    z-index: 2;
+    animation: float 6s ease-in-out infinite;
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(-50%) translateY(0); }
+    50%       { transform: translateY(-50%) translateY(-18px); }
+  }
+
+  .hero-content {
+    position: relative; z-index: 3;
+    max-width: 680px;
+  }
+  .hero-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: .68rem; letter-spacing: .25em; text-transform: uppercase;
+    color: var(--amber); margin-bottom: 2rem;
+    display: flex; align-items: center; gap: 1rem;
+  }
+  .hero-eyebrow::before {
+    content: '';
+    display: inline-block; width: 30px; height: 1px;
+    background: var(--amber);
+  }
+
+  h1.hero-headline {
+    font-size: clamp(3.5rem, 7vw, 6.5rem);
+    font-weight: 300;
+    line-height: 1.03;
+    color: var(--white);
+    margin-bottom: 2rem;
+    letter-spacing: -.01em;
+  }
+  h1.hero-headline em { color: var(--amber); font-style: italic; }
+
+  .hero-sub {
+    font-size: 1.05rem;
+    color: var(--cream-dim);
+    max-width: 480px;
+    line-height: 1.75;
+    margin-bottom: 2.8rem;
+  }
+  .hero-actions { display: flex; gap: 1rem; flex-wrap: wrap; }
+
+  .hero-scroll {
+    position: absolute; bottom: 2.5rem; left: 50%; transform: translateX(-50%);
+    z-index: 3;
+    display: flex; flex-direction: column; align-items: center; gap: .5rem;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    font-size: .6rem; letter-spacing: .2em; text-transform: uppercase;
+  }
+  .scroll-line {
+    width: 1px; height: 40px;
+    background: linear-gradient(to bottom, var(--amber), transparent);
+    animation: scrollPulse 2s ease-in-out infinite;
+  }
+  @keyframes scrollPulse {
+    0%, 100% { opacity: .3; } 50% { opacity: 1; }
+  }
+
+  /* ─── STATEMENT BAR ───────────────────────────────────── */
+  .statement-bar {
+    background: var(--bg-lift);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 1.4rem 0;
+    overflow: hidden;
+  }
+  .ticker {
+    display: flex; gap: 5rem; white-space: nowrap;
+    animation: ticker 30s linear infinite;
+  }
+  .ticker span {
+    font-family: 'DM Mono', monospace;
+    font-size: .7rem; letter-spacing: .18em; text-transform: uppercase;
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+  .ticker .dot { color: var(--amber); }
+  @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+  /* ─── HOW IT WORKS ────────────────────────────────────── */
+  #how {
+    background: var(--bg);
+  }
+  .steps-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0;
+    margin-top: 5rem;
+    border: 1px solid var(--border);
+  }
+  .step {
+    padding: 3rem 2.5rem;
+    border-right: 1px solid var(--border);
+    position: relative;
+    transition: background .3s;
+  }
+  .step:last-child { border-right: none; }
+  .step:hover { background: rgba(196,146,58,.03); }
+
+  .step-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 5rem;
+    font-weight: 300;
+    color: rgba(196,146,58,.12);
+    line-height: 1;
+    margin-bottom: 1.5rem;
+    display: block;
+  }
+  .step-icon {
+    width: 44px; height: 44px;
+    border: 1px solid var(--border-hi);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 1.8rem;
+    color: var(--amber);
+  }
+  .step h3 {
+    font-size: 1.65rem;
+    font-weight: 400;
+    margin-bottom: 1rem;
+    color: var(--cream);
+  }
+  .step p {
+    font-size: .9rem;
+    color: var(--cream-dim);
+    line-height: 1.75;
+  }
+  .step-tag {
+    display: inline-block;
+    margin-top: 1.5rem;
+    font-family: 'DM Mono', monospace;
+    font-size: .65rem;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--amber-dim);
+    padding: .3rem .7rem;
+    border: 1px solid var(--border);
+  }
+
+  /* ─── INTERACTIVE DEMO ────────────────────────────────── */
+  #demo {
+    background: var(--bg-lift);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .demo-inner {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 5rem;
+    align-items: center;
+  }
+  .demo-stage {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    padding: 2.5rem;
+    position: relative;
+    min-height: 480px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 2rem;
+  }
+
+  /* Hub visual */
+  .hub-visual {
+    position: relative;
+    width: 200px;
+    flex-shrink: 0;
+  }
+  .hub-body {
+    width: 200px; height: 70px;
+    background: linear-gradient(160deg, #3d2b14 0%, #2a1d0e 50%, #1e1508 100%);
+    border-radius: 8px;
+    position: relative;
+    box-shadow: 0 20px 60px rgba(0,0,0,.8), 0 0 0 1px rgba(196,146,58,.1);
+  }
+  .hub-slot {
+    position: absolute;
+    top: -2px; left: 50%; transform: translateX(-50%);
+    width: 100px; height: 6px;
+    background: #0a0705;
+    border-radius: 3px 3px 0 0;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,.8);
+    transition: box-shadow .4s;
+  }
+  .hub-slot.active { box-shadow: inset 0 2px 4px rgba(0,0,0,.8), 0 0 12px rgba(196,146,58,.5); }
+  .hub-glow {
+    position: absolute;
+    bottom: -6px; left: 50%; transform: translateX(-50%);
+    width: 80%; height: 12px;
+    background: radial-gradient(ellipse, rgba(196,146,58,.3) 0%, transparent 70%);
+    transition: opacity .4s;
+    opacity: 0;
+  }
+  .hub-glow.active { opacity: 1; }
+  .hub-wood-lines {
+    position: absolute; inset: 0;
+    border-radius: 8px; overflow: hidden; opacity: .15;
+    background: repeating-linear-gradient(
+      90deg, transparent, transparent 8px,
+      rgba(255,255,255,.2) 8px, rgba(255,255,255,.2) 9px
+    );
+  }
+
+  /* Photo cards for demo */
+  .photo-shelf {
+    display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center;
+  }
+  .photo-card {
+    width: 80px; height: 96px;
+    border-radius: 3px;
+    cursor: grab;
+    position: relative;
+    border: 2px solid transparent;
+    transition: all .25s ease;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .photo-card:hover {
+    transform: translateY(-6px) rotate(-1deg);
+    border-color: var(--amber);
+    box-shadow: 0 12px 30px rgba(0,0,0,.6);
+  }
+  .photo-card.inserted {
+    transform: scale(.85);
+    opacity: .5;
+    pointer-events: none;
+  }
+  .photo-card .photo-inner {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2rem;
+  }
+  .photo-card .photo-label {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: rgba(0,0,0,.6);
+    font-family: 'DM Mono', monospace;
+    font-size: .5rem; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--cream-dim);
+    padding: .2rem .3rem;
+    text-align: center;
+  }
+
+  /* photo backgrounds */
+  .photo-wedding  { background: linear-gradient(135deg, #3d2632 0%, #1a1015 100%); }
+  .photo-baby     { background: linear-gradient(135deg, #1e2d3d 0%, #0f1820 100%); }
+  .photo-travel   { background: linear-gradient(135deg, #1d3020 0%, #0e1810 100%); }
+  .photo-concert  { background: linear-gradient(135deg, #2d1e10 0%, #180e05 100%); }
+
+  /* Playing state */
+  .waveform-bars {
+    display: flex; align-items: flex-end; gap: 3px; height: 30px;
+    margin-top: .5rem;
+  }
+  .bar {
+    width: 3px;
+    background: var(--amber);
+    border-radius: 2px;
+    animation: barAnim 1s ease-in-out infinite;
+    opacity: 0;
+    transition: opacity .3s;
+  }
+  .bar.active { opacity: 1; }
+  .bar:nth-child(1)  { animation-delay: 0s; }
+  .bar:nth-child(2)  { animation-delay: .1s; }
+  .bar:nth-child(3)  { animation-delay: .2s; }
+  .bar:nth-child(4)  { animation-delay: .15s; }
+  .bar:nth-child(5)  { animation-delay: .05s; }
+  .bar:nth-child(6)  { animation-delay: .25s; }
+  .bar:nth-child(7)  { animation-delay: .1s; }
+  .bar:nth-child(8)  { animation-delay: .3s; }
+  @keyframes barAnim {
+    0%, 100% { height: 4px; } 50% { height: 28px; }
+  }
+
+  .demo-status {
+    font-family: 'DM Mono', monospace;
+    font-size: .65rem; letter-spacing: .15em; text-transform: uppercase;
+    color: var(--amber);
+    min-height: 1.2em;
+    text-align: center;
+    transition: opacity .3s;
+  }
+  .demo-instruction {
+    font-family: 'DM Mono', monospace;
+    font-size: .6rem; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--muted);
+    text-align: center;
+    position: absolute; top: 1.5rem; left: 0; right: 0;
+  }
+
+  .nfc-pulse {
+    position: absolute;
+    top: 1rem; right: 1rem;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--amber);
+    opacity: 0;
+    transition: opacity .3s;
+  }
+  .nfc-pulse.active {
+    opacity: 1;
+    animation: nfcPulse 1.5s ease-out infinite;
+  }
+  @keyframes nfcPulse {
+    0%   { box-shadow: 0 0 0 0 rgba(196,146,58,.8); }
+    70%  { box-shadow: 0 0 0 10px rgba(196,146,58,0); }
+    100% { box-shadow: 0 0 0 0 rgba(196,146,58,0); }
+  }
+
+  .demo-copy { max-width: 440px; }
+  .demo-copy h2 { font-size: 3rem; margin-bottom: 1.5rem; }
+  .demo-copy p { color: var(--cream-dim); font-size: .95rem; margin-bottom: 1.5rem; }
+  .demo-copy ul { list-style: none; }
+  .demo-copy ul li {
+    display: flex; align-items: flex-start; gap: 1rem;
+    font-size: .9rem; color: var(--cream-dim);
+    margin-bottom: 1rem;
+  }
+  .demo-copy ul li::before {
+    content: '—';
+    color: var(--amber); flex-shrink: 0;
+  }
+
+  /* ─── PRODUCTS ────────────────────────────────────────── */
+  #products {
+    background: var(--bg);
+  }
+  .products-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+    margin-top: 4rem;
+    border: 1px solid var(--border);
+  }
+  .product-card {
+    background: var(--bg-card);
+    padding: 3.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: background .3s;
+  }
+  .product-card:hover { background: rgba(196,146,58,.03); }
+  .product-card + .product-card { border-left: 1px solid var(--border); }
+
+  .product-card.premium {
+    background: linear-gradient(145deg, #141008 0%, #0f0c07 60%, #191309 100%);
+  }
+  .product-card.premium::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(196,146,58,.06) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .product-badge {
+    display: inline-block;
+    font-family: 'DM Mono', monospace;
+    font-size: .62rem; letter-spacing: .18em; text-transform: uppercase;
+    padding: .3rem .8rem;
+    border: 1px solid var(--border-hi);
+    color: var(--amber);
+    margin-bottom: 2rem;
+  }
+  .product-badge.premium-badge {
+    background: var(--amber); color: var(--bg); border-color: var(--amber);
+  }
+
+  .product-visual {
+    height: 220px;
+    border-radius: 4px;
+    margin: 2rem 0;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  .kit-visual {
+    background: linear-gradient(145deg, #2a1d0e 0%, #1a1208 100%);
+  }
+  .wedding-visual {
+    background: linear-gradient(145deg, #1e1410 0%, #100c08 100%);
+  }
+
+  /* Geometric product illustration */
+  .product-illo {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
+    gap: 1rem;
+    font-size: 3rem;
+  }
+  .product-illo-label {
+    font-family: 'DM Mono', monospace;
+    font-size: .55rem; letter-spacing: .2em; text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .product-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.2rem; font-weight: 400;
+    color: var(--cream);
+    margin-bottom: .5rem;
+  }
+  .product-tagline {
+    font-size: .9rem;
+    color: var(--cream-dim);
+    margin-bottom: 1.8rem;
+    font-style: italic;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.1rem;
+  }
+  .product-price {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 3.2rem; font-weight: 300;
+    color: var(--amber);
+    line-height: 1;
+    margin-bottom: .3rem;
+  }
+  .product-price-note {
+    font-family: 'DM Mono', monospace;
+    font-size: .62rem; letter-spacing: .12em;
+    color: var(--muted);
+    margin-bottom: 2rem;
+  }
+
+  .product-includes {
+    list-style: none;
+    margin-bottom: 2.5rem;
+  }
+  .product-includes li {
+    display: flex; align-items: center; gap: 1rem;
+    font-size: .88rem; color: var(--cream-dim);
+    padding: .65rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .product-includes li:last-child { border-bottom: none; }
+  .product-includes li::before {
+    content: '';
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--amber);
+    flex-shrink: 0;
+  }
+  .product-includes li strong { color: var(--cream); font-weight: 400; }
+
+  /* ─── APP SECTION ─────────────────────────────────────── */
+  #app-section {
+    background: var(--bg-lift);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .app-inner {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 5rem;
+    align-items: center;
+  }
+
+  /* Phone mockup */
+  .phone-wrap {
+    display: flex; justify-content: center;
+  }
+  .phone {
+    width: 270px;
+    background: #0d0b09;
+    border-radius: 36px;
+    border: 1px solid rgba(196,146,58,.2);
+    overflow: hidden;
+    box-shadow: 0 40px 80px rgba(0,0,0,.7), 0 0 0 1px rgba(255,255,255,.03);
+    position: relative;
+  }
+  .phone-notch {
+    width: 100px; height: 28px;
+    background: #0d0b09;
+    border-radius: 0 0 20px 20px;
+    margin: 0 auto;
+    position: relative; z-index: 2;
+  }
+  .phone-screen {
+    background: #0a0806;
+    min-height: 520px;
+    padding: 1rem;
+    display: flex; flex-direction: column; gap: .8rem;
+  }
+
+  /* App UI elements */
+  .app-topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: .3rem 0;
+  }
+  .app-topbar-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.1rem; color: var(--cream);
+  }
+  .app-topbar-icon {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--bg-card); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: .7rem; color: var(--amber);
+  }
+
+  /* Photo selector in app */
+  .app-photo-row {
+    display: flex; gap: .5rem;
+    overflow-x: auto; padding-bottom: .3rem;
+  }
+  .app-photo-thumb {
+    width: 60px; height: 72px; border-radius: 4px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem;
+    border: 1.5px solid transparent;
+    transition: border-color .2s;
+    cursor: pointer;
+  }
+  .app-photo-thumb.selected { border-color: var(--amber); }
+  .app-photo-thumb:nth-child(1) { background: linear-gradient(135deg, #3d2632, #1a1015); }
+  .app-photo-thumb:nth-child(2) { background: linear-gradient(135deg, #1e2d3d, #0f1820); }
+  .app-photo-thumb:nth-child(3) { background: linear-gradient(135deg, #1d3020, #0e1810); }
+  .app-photo-thumb:nth-child(4) { background: linear-gradient(135deg, #2d1e10, #180e05); }
+  .app-photo-thumb:nth-child(5) { background: linear-gradient(135deg, #2d2010, #180f05); }
+
+  /* Selected photo large */
+  .app-photo-large {
+    width: 100%; height: 140px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #3d2632, #1a1015);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 3rem; position: relative; overflow: hidden;
+  }
+  .app-photo-large-label {
+    position: absolute; top: .5rem; left: .5rem;
+    font-family: 'DM Mono', monospace;
+    font-size: .5rem; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--cream-dim);
+    background: rgba(0,0,0,.5);
+    padding: .2rem .4rem; border-radius: 2px;
+  }
+
+  /* Waveform slider */
+  .app-waveform-section {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: .8rem;
+  }
+  .app-waveform-label {
+    font-family: 'DM Mono', monospace;
+    font-size: .5rem; letter-spacing: .15em; text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: .5rem;
+  }
+  .waveform-display {
+    height: 40px;
+    background: var(--bg);
+    border-radius: 3px;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: .6rem;
+  }
+  .waveform-bars-app {
+    display: flex; align-items: center; gap: 2px;
+    height: 100%; padding: 4px 6px;
+  }
+  .wv-bar {
+    flex: 1; border-radius: 1px;
+    background: var(--muted); opacity: .4;
+    transition: background .2s, opacity .2s;
+  }
+  .wv-bar.selected { background: var(--amber); opacity: 1; }
+  .wv-window {
+    position: absolute; top: 0; left: 28%; width: 36%; height: 100%;
+    background: rgba(196,146,58,.08);
+    border-left: 1.5px solid var(--amber);
+    border-right: 1.5px solid var(--amber);
+    pointer-events: none;
+  }
+
+  .app-time-row {
+    display: flex; justify-content: space-between;
+    font-family: 'DM Mono', monospace;
+    font-size: .5rem; color: var(--muted);
+  }
+
+  .app-extract-btn {
+    width: 100%; padding: .6rem;
+    background: var(--amber);
+    border: none; border-radius: 4px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: .75rem; font-weight: 500;
+    letter-spacing: .06em; text-transform: uppercase;
+    color: var(--bg); cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: .5rem;
+  }
+
+  /* App description */
+  .app-copy h2 { font-size: 3rem; margin-bottom: 1.5rem; }
+  .app-copy p  { color: var(--cream-dim); font-size: .95rem; margin-bottom: 1.5rem; line-height: 1.75; }
+
+  .app-feature {
+    display: flex; gap: 1.2rem; margin-bottom: 1.5rem;
+    align-items: flex-start;
+  }
+  .app-feature-icon {
+    width: 40px; height: 40px;
+    border: 1px solid var(--border-hi);
+    border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--amber); flex-shrink: 0; font-size: 1rem;
+  }
+  .app-feature-copy h4 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.2rem; font-weight: 400;
+    margin-bottom: .3rem; color: var(--cream);
+  }
+  .app-feature-copy p { font-size: .85rem; margin-bottom: 0; }
+
+  /* ─── PHILOSOPHY / STORY SECTION ──────────────────────── */
+  #story {
+    background: var(--bg);
+    text-align: center;
+  }
+  .story-inner { max-width: 640px; margin: 0 auto; }
+  .story-inner h2 {
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    margin-bottom: 2rem;
+  }
+  .story-inner p { color: var(--cream-dim); font-size: 1rem; margin-bottom: 1.5rem; line-height: 1.8; }
+  .story-inner blockquote {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.5rem; font-weight: 300; font-style: italic;
+    color: var(--cream);
+    border-left: 2px solid var(--amber);
+    padding: 1rem 0 1rem 1.5rem;
+    text-align: left;
+    margin: 2.5rem 0;
+  }
+  .story-stats {
+    display: flex; justify-content: center; gap: 4rem;
+    margin-top: 4rem; padding-top: 3rem;
+    border-top: 1px solid var(--border);
+  }
+  .stat-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 3.5rem; font-weight: 300;
+    color: var(--amber); line-height: 1;
+    margin-bottom: .3rem;
+  }
+  .stat-label {
+    font-family: 'DM Mono', monospace;
+    font-size: .62rem; letter-spacing: .15em; text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* ─── TESTIMONIALS ────────────────────────────────────── */
+  #testimonials {
+    background: var(--bg-lift);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .testimonials-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5px;
+    margin-top: 4rem;
+    background: var(--border);
+  }
+  .testimonial {
+    background: var(--bg-card);
+    padding: 2.5rem;
+  }
+  .testimonial-quote {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.25rem; font-weight: 300;
+    color: var(--cream); line-height: 1.5;
+    margin-bottom: 1.5rem;
+  }
+  .testimonial-quote::before { content: '"'; color: var(--amber); font-size: 2rem; line-height: 0; vertical-align: -.5rem; margin-right: .2rem; }
+  .testimonial-author {
+    font-family: 'DM Mono', monospace;
+    font-size: .62rem; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--muted);
+  }
+  .testimonial-author strong { color: var(--cream-dim); display: block; margin-bottom: .2rem; }
+
+  /* ─── FINAL CTA ───────────────────────────────────────── */
+  #cta {
+    background: var(--bg);
+    text-align: center;
+  }
+  .cta-inner { max-width: 580px; margin: 0 auto; }
+  .cta-inner h2 {
+    font-size: clamp(3rem, 6vw, 5rem);
+    margin-bottom: 1.5rem;
+  }
+  .cta-inner p { color: var(--cream-dim); margin-bottom: 2.5rem; }
+  .cta-actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+
+  /* ─── FOOTER ──────────────────────────────────────────── */
+  footer {
+    background: var(--bg-card);
+    border-top: 1px solid var(--border);
+    padding: 4rem 0 2rem;
+  }
+  .footer-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 3rem;
+    padding-bottom: 3rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 2rem;
+  }
+  .footer-brand h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.4rem; font-weight: 400;
+    margin-bottom: .8rem;
+  }
+  .footer-brand h3 span { color: var(--amber); }
+  .footer-brand p {
+    font-size: .85rem; color: var(--muted); line-height: 1.7;
+    max-width: 260px;
+  }
+  .footer-col h4 {
+    font-family: 'DM Mono', monospace;
+    font-size: .62rem; letter-spacing: .2em; text-transform: uppercase;
+    color: var(--amber); margin-bottom: 1.2rem;
+  }
+  .footer-col ul { list-style: none; }
+  .footer-col ul li { margin-bottom: .7rem; }
+  .footer-col ul li a {
+    font-size: .85rem; color: var(--muted);
+    transition: color .2s;
+  }
+  .footer-col ul li a:hover { color: var(--cream-dim); }
+  .footer-bottom {
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .footer-bottom p {
+    font-family: 'DM Mono', monospace;
+    font-size: .6rem; letter-spacing: .12em;
+    color: var(--muted);
+  }
+
+  /* ─── SCROLL REVEAL ───────────────────────────────────── */
+  .reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity .8s ease, transform .8s ease;
+  }
+  .reveal.visible { opacity: 1; transform: none; }
+  .reveal-delay-1 { transition-delay: .1s; }
+  .reveal-delay-2 { transition-delay: .2s; }
+  .reveal-delay-3 { transition-delay: .3s; }
+
+  /* ─── RESPONSIVE ──────────────────────────────────────── */
+  @media (max-width: 900px) {
+    .steps-grid, .products-grid, .testimonials-grid,
+    .demo-inner, .app-inner { grid-template-columns: 1fr; }
+    .product-card + .product-card { border-left: none; border-top: 1px solid var(--border); }
+    .demo-stage { min-height: 380px; }
+    .hero-product { display: none; }
+    .footer-grid { grid-template-columns: 1fr 1fr; }
+    .story-stats { gap: 2rem; }
+    h1.hero-headline { font-size: 3rem; }
+    .step { border-right: none; border-bottom: 1px solid var(--border); }
+    .step:last-child { border-bottom: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════ NAV ═══════════ -->
+<nav>
+  <div class="nav-logo">Echo<span>Frame</span> Labs</div>
+  <div class="nav-links">
+    <a href="#how">Process</a>
+    <a href="#demo">Experience</a>
+    <a href="#products">Shop</a>
+    <a href="#app-section">The App</a>
+    <a href="#products" class="nav-cta">Begin Yours</a>
+  </div>
+</nav>
+
+<!-- ═══════════ HERO ═══════════ -->
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-texture"></div>
+
+  <!-- Abstract Hub SVG illustration -->
+  <div class="hero-product">
+    <svg viewBox="0 0 420 300" xmlns="http://www.w3.org/2000/svg">
+      <!-- Ambient glow -->
+      <ellipse cx="210" cy="260" rx="140" ry="22" fill="rgba(196,146,58,0.18)"/>
+
+      <!-- Hub body -->
+      <rect x="60" y="170" width="300" height="90" rx="12" fill="url(#woodGrad)"/>
+      <!-- Wood grain lines -->
+      <line x1="80" y1="170" x2="80" y2="260" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+      <line x1="110" y1="170" x2="110" y2="260" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+      <line x1="160" y1="170" x2="160" y2="260" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+      <line x1="220" y1="170" x2="220" y2="260" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+      <line x1="290" y1="170" x2="290" y2="260" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+      <line x1="340" y1="170" x2="340" y2="260" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+
+      <!-- Slot -->
+      <rect x="145" y="165" width="130" height="10" rx="5" fill="#050403"/>
+      <rect x="148" y="167" width="124" height="6" rx="3" fill="#0a0806"/>
+      <!-- Slot glow when photo near -->
+      <rect x="145" y="163" width="130" height="4" rx="2" fill="url(#slotGlow)" opacity="0.6"/>
+
+      <!-- Echo-Print card inserted -->
+      <g transform="translate(155, 60)">
+        <!-- Photo card shadow -->
+        <rect x="3" y="3" width="110" height="132" rx="4" fill="rgba(0,0,0,0.5)"/>
+        <!-- Photo card -->
+        <rect width="110" height="132" rx="4" fill="url(#photoGrad)"/>
+        <!-- Photo scene: soft silhouettes -->
+        <circle cx="55" cy="50" r="20" fill="rgba(255,255,255,0.06)"/>
+        <ellipse cx="55" cy="95" rx="35" ry="20" fill="rgba(255,255,255,0.04)"/>
+        <!-- White border like a photo print -->
+        <rect x="6" y="6" width="98" height="98" rx="2" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+        <!-- Museum-quality tag -->
+        <rect x="15" y="112" width="80" height="14" rx="2" fill="rgba(0,0,0,0.4)"/>
+        <text x="55" y="122" text-anchor="middle" font-family="monospace" font-size="6" fill="rgba(196,146,58,0.8)" letter-spacing="1">NFC · ECHO-PRINT</text>
+      </g>
+
+      <!-- LED indicator dots -->
+      <circle cx="310" cy="215" r="4" fill="rgba(196,146,58,0.8)">
+        <animate attributeName="opacity" values="0.8;0.2;0.8" dur="2s" repeatCount="indefinite"/>
+      </circle>
+
+      <!-- Brand mark -->
+      <text x="210" y="242" text-anchor="middle" font-family="'DM Mono', monospace" font-size="7" fill="rgba(196,146,58,0.4)" letter-spacing="3">ECHOFRAME LABS</text>
+
+      <defs>
+        <linearGradient id="woodGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#4a331a"/>
+          <stop offset="100%" stop-color="#1e1508"/>
+        </linearGradient>
+        <linearGradient id="photoGrad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#3d2632"/>
+          <stop offset="100%" stop-color="#1a0f14"/>
+        </linearGradient>
+        <linearGradient id="slotGlow" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="transparent"/>
+          <stop offset="50%" stop-color="rgba(196,146,58,0.8)"/>
+          <stop offset="100%" stop-color="transparent"/>
+        </linearGradient>
+      </defs>
+    </svg>
+  </div>
+
+  <div class="hero-content">
+    <p class="hero-eyebrow">Introducing EchoFrame Labs</p>
+    <h1 class="hero-headline">
+      Some moments<br>deserve to be<br><em>heard.</em>
+    </h1>
+    <p class="hero-sub">
+      A photograph holds what the eye saw. EchoFrame captures what the room sounded like. Drop a print, close your eyes, and travel back.
+    </p>
+    <div class="hero-actions">
+      <a href="#products" class="btn btn-filled">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4.5 9.5L12 4l7.5 5.5V20a.5.5 0 01-.5.5H5a.5.5 0 01-.5-.5V9.5z"/></svg>
+        Shop the Collection
+      </a>
+      <a href="#demo" class="btn">
+        Experience the Demo
+      </a>
+    </div>
+  </div>
+
+  <div class="hero-scroll">
+    <div class="scroll-line"></div>
+    Scroll
+  </div>
+</section>
+
+<!-- ═══════════ TICKER ═══════════ -->
+<div class="statement-bar">
+  <div class="ticker">
+    <span>Museum-Grade Photography</span><span class="dot">·</span>
+    <span>Invisible NFC Technology</span><span class="dot">·</span>
+    <span>30 Seconds of Pure Memory</span><span class="dot">·</span>
+    <span>Archival-Quality Printing</span><span class="dot">·</span>
+    <span>Walnut &amp; Slate Hub</span><span class="dot">·</span>
+    <span>Ships in 5–7 Days</span><span class="dot">·</span>
+    <span>Museum-Grade Photography</span><span class="dot">·</span>
+    <span>Invisible NFC Technology</span><span class="dot">·</span>
+    <span>30 Seconds of Pure Memory</span><span class="dot">·</span>
+    <span>Archival-Quality Printing</span><span class="dot">·</span>
+    <span>Walnut &amp; Slate Hub</span><span class="dot">·</span>
+    <span>Ships in 5–7 Days</span><span class="dot">·</span>
+  </div>
+</div>
+
+<!-- ═══════════ HOW IT WORKS ═══════════ -->
+<section id="how" class="section">
+  <div class="container">
+    <div class="reveal">
+      <p class="eyebrow">The Ritual</p>
+      <h2 class="serif" style="font-size:clamp(2.5rem,5vw,4rem); max-width:500px;">
+        Three steps to a living archive.
+      </h2>
+    </div>
+
+    <div class="steps-grid">
+      <div class="step reveal reveal-delay-1">
+        <span class="step-num">01</span>
+        <div class="step-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="3" y="3" width="18" height="18" rx="2"/>
+            <path d="M8 12h8M12 8v8"/>
+          </svg>
+        </div>
+        <h3>Upload &amp; Sculpt</h3>
+        <p>Open the EchoFrame app. Choose a photo — a wedding, a first word, a stadium, a kitchen table. Find the video from that day. Drag the 30-second window over the audio that holds the feeling. Every adjustment is felt, not just heard.</p>
+        <span class="step-tag">Via iPhone · Android</span>
+      </div>
+
+      <div class="step reveal reveal-delay-2">
+        <span class="step-num">02</span>
+        <div class="step-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+            <path d="M2 17l10 5 10-5M2 12l10 5 10-5"/>
+          </svg>
+        </div>
+        <h3>We Print &amp; Encode</h3>
+        <p>Your image is output on museum-grade baryta paper — the same stock archivists use for prints meant to outlast buildings. An NFC chip, invisible to the eye and impervious to time, is embedded into the substrate. Your audio is encoded and encrypted to the chip's unique identifier.</p>
+        <span class="step-tag">5–7 Day Fulfillment</span>
+      </div>
+
+      <div class="step reveal reveal-delay-3">
+        <span class="step-num">03</span>
+        <div class="step-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M9 18V5l12-2v13"/>
+            <circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+          </svg>
+        </div>
+        <h3>Drop &amp; Listen</h3>
+        <p>Set the Hub on a shelf, a bedside table, a mantle. When a print is slipped into the slot, the Hub wakes — imperceptibly, deliberately — and the room fills with your memory. No screens. No unlocking. Just a photograph, a gesture, and 30 seconds of exactly then.</p>
+        <span class="step-tag">Plug-in &amp; Wireless Ready</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ INTERACTIVE DEMO ═══════════ -->
+<section id="demo" class="section">
+  <div class="container">
+    <div class="demo-inner">
+      <!-- Stage -->
+      <div class="demo-stage reveal" id="demoStage">
+        <p class="demo-instruction">Choose a memory below, then drop it into the Hub</p>
+        <div class="nfc-pulse" id="nfcPulse"></div>
+
+        <!-- Hub -->
+        <div class="hub-visual">
+          <div class="hub-body" id="hubBody">
+            <div class="hub-wood-lines"></div>
+            <div class="hub-slot" id="hubSlot"></div>
+            <div class="hub-glow" id="hubGlow"></div>
+          </div>
+        </div>
+
+        <!-- Waveform -->
+        <div class="waveform-bars" id="waveformBars">
+          <div class="bar" style="height:4px"></div>
+          <div class="bar" style="height:4px"></div>
+          <div class="bar" style="height:4px"></div>
+          <div class="bar" style="height:4px"></div>
+          <div class="bar" style="height:4px"></div>
+          <div class="bar" style="height:4px"></div>
+          <div class="bar" style="height:4px"></div>
+          <div class="bar" style="height:4px"></div>
+        </div>
+
+        <div class="demo-status" id="demoStatus"></div>
+
+        <!-- Photo shelf -->
+        <div class="photo-shelf" id="photoShelf">
+          <div class="photo-card photo-wedding" data-memory="wedding" data-emoji="💍">
+            <div class="photo-inner">💍</div>
+            <div class="photo-label">Wedding · 2019</div>
+          </div>
+          <div class="photo-card photo-baby" data-memory="baby" data-emoji="👶">
+            <div class="photo-inner">👶</div>
+            <div class="photo-label">First Laugh</div>
+          </div>
+          <div class="photo-card photo-travel" data-memory="travel" data-emoji="🏔">
+            <div class="photo-inner">🏔</div>
+            <div class="photo-label">Patagonia</div>
+          </div>
+          <div class="photo-card photo-concert" data-memory="concert" data-emoji="🎶">
+            <div class="photo-inner">🎶</div>
+            <div class="photo-label">The Show</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Copy -->
+      <div class="demo-copy reveal reveal-delay-2">
+        <p class="eyebrow">Live Experience</p>
+        <h2>Touch a memory. Hear it breathe.</h2>
+        <p>This is a simplified simulation of what happens every time a print meets the Hub. Select any Echo-Print card and drop it in. The real thing is quieter, warmer, and exactly 30 seconds of irreplaceable.</p>
+        <ul>
+          <li>Each card contains an invisible NFC chip, read in under 0.3 seconds</li>
+          <li>Audio is stored on-device — no internet required once set up</li>
+          <li>The Hub reads the chip's unique signature, not generic NFC data</li>
+          <li>Prints are water-resistant and archival — designed for decades of drops</li>
+        </ul>
+        <br>
+        <a href="#products" class="btn btn-filled">Create Your First Memory →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ PRODUCTS ═══════════ -->
+<section id="products" class="section">
+  <div class="container">
+    <div class="reveal" style="text-align:center; margin-bottom:1rem;">
+      <p class="eyebrow">The Collection</p>
+      <h2 class="serif" style="font-size:clamp(2.5rem,5vw,4rem);">An object worthy of what it carries.</h2>
+    </div>
+
+    <div class="products-grid reveal">
+
+      <!-- Starter Kit -->
+      <div class="product-card">
+        <span class="product-badge">Starter Kit</span>
+
+        <div class="product-visual kit-visual">
+          <div class="product-illo">
+            <svg width="160" height="120" viewBox="0 0 160 120">
+              <!-- Hub -->
+              <rect x="20" y="70" width="120" height="40" rx="6" fill="url(#kitWood)"/>
+              <line x1="35" y1="70" x2="35" y2="110" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+              <line x1="60" y1="70" x2="60" y2="110" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+              <line x1="100" y1="70" x2="100" y2="110" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+              <line x1="130" y1="70" x2="130" y2="110" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+              <rect x="55" y="67" width="50" height="5" rx="2.5" fill="#050403"/>
+              <!-- 3 prints -->
+              <rect x="22" y="8" width="36" height="48" rx="2" fill="url(#p1)"/>
+              <rect x="62" y="12" width="36" height="48" rx="2" fill="url(#p2)"/>
+              <rect x="102" y="8" width="36" height="48" rx="2" fill="url(#p3)"/>
+              <defs>
+                <linearGradient id="kitWood" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#5a3d1e"/><stop offset="100%" stop-color="#2a1c0b"/>
+                </linearGradient>
+                <linearGradient id="p1" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#3d2632"/><stop offset="100%" stop-color="#1a1015"/>
+                </linearGradient>
+                <linearGradient id="p2" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#1e2d3d"/><stop offset="100%" stop-color="#0f1820"/>
+                </linearGradient>
+                <linearGradient id="p3" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#1d3020"/><stop offset="100%" stop-color="#0e1810"/>
+                </linearGradient>
+              </defs>
+            </svg>
+            <div class="product-illo-label">Hub + 3 Echo-Prints</div>
+          </div>
+        </div>
+
+        <h2 class="product-name">The Starter Kit</h2>
+        <p class="product-tagline">Your first three moments, preserved.</p>
+
+        <div class="product-price">$169</div>
+        <p class="product-price-note">Free shipping · 30-day returns</p>
+
+        <ul class="product-includes">
+          <li><strong>The Hub</strong> — American walnut base with slate inlay</li>
+          <li><strong>3 × Echo-Prints</strong> — 5×7″, museum baryta, NFC-embedded</li>
+          <li><strong>EchoFrame App</strong> — iPhone &amp; Android, free forever</li>
+          <li><strong>USB-C power cable</strong> — or use optional wireless pad</li>
+          <li><strong>Microfibre cleaning cloth</strong> — archival-grade cotton</li>
+        </ul>
+
+        <a href="#" class="btn btn-filled" style="width:100%; justify-content:center;">Add to Cart</a>
+        <p style="font-size:.75rem; color:var(--muted); margin-top:.8rem; text-align:center;">
+          Additional Echo-Prints from $28 each
+        </p>
+      </div>
+
+      <!-- Wedding Legacy Box -->
+      <div class="product-card premium">
+        <span class="product-badge premium-badge">Wedding Legacy Box</span>
+
+        <div class="product-visual wedding-visual">
+          <div class="product-illo">
+            <svg width="180" height="120" viewBox="0 0 180 120">
+              <!-- Box -->
+              <rect x="10" y="50" width="160" height="60" rx="4" fill="url(#boxGrad)" stroke="rgba(196,146,58,0.3)" stroke-width="1"/>
+              <!-- Box lid -->
+              <rect x="10" y="40" width="160" height="16" rx="4" fill="url(#lidGrad)" stroke="rgba(196,146,58,0.4)" stroke-width="1"/>
+              <!-- Ribbon -->
+              <line x1="90" y1="40" x2="90" y2="110" stroke="rgba(196,146,58,0.5)" stroke-width="1"/>
+              <line x1="10" y1="60" x2="170" y2="60" stroke="rgba(196,146,58,0.5)" stroke-width="1"/>
+              <!-- Bow -->
+              <path d="M75 42 Q82 35 90 40 Q98 35 105 42 Q98 48 90 44 Q82 48 75 42z" fill="rgba(196,146,58,0.3)" stroke="rgba(196,146,58,0.6)" stroke-width="1"/>
+              <!-- Prints inside peeking out -->
+              <rect x="30" y="30" width="30" height="38" rx="2" fill="url(#wp1)" opacity="0.9"/>
+              <rect x="75" y="22" width="30" height="38" rx="2" fill="url(#wp2)" opacity="0.9"/>
+              <rect x="120" y="28" width="30" height="38" rx="2" fill="url(#wp3)" opacity="0.9"/>
+              <defs>
+                <linearGradient id="boxGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#1a1410"/><stop offset="100%" stop-color="#0d0a07"/>
+                </linearGradient>
+                <linearGradient id="lidGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#2a2218"/><stop offset="100%" stop-color="#1a1410"/>
+                </linearGradient>
+                <linearGradient id="wp1" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#3d2632"/><stop offset="100%" stop-color="#1a1015"/>
+                </linearGradient>
+                <linearGradient id="wp2" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#1e2d3d"/><stop offset="100%" stop-color="#0f1820"/>
+                </linearGradient>
+                <linearGradient id="wp3" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#3d3020"/><stop offset="100%" stop-color="#1e1810"/>
+                </linearGradient>
+              </defs>
+            </svg>
+            <div class="product-illo-label">The Complete Wedding Archive</div>
+          </div>
+        </div>
+
+        <h2 class="product-name">Wedding Legacy Box</h2>
+        <p class="product-tagline">For the day that deserves its own altar.</p>
+
+        <div class="product-price">$499</div>
+        <p class="product-price-note">White-glove delivery · Lifetime print guarantee</p>
+
+        <ul class="product-includes">
+          <li><strong>Collector's Hub</strong> — solid ebonised oak, hand-finished</li>
+          <li><strong>10 × Echo-Prints</strong> — 8×10″ fine art baryta, NFC-embedded</li>
+          <li><strong>Folio Box</strong> — archival clamshell, linen cover, gold foil</li>
+          <li><strong>Concierge Editing</strong> — we select your 30-second windows for you</li>
+          <li><strong>Vow Recording</strong> — we extract and master the ceremony audio</li>
+          <li><strong>Wireless charging pad</strong> — slate finish, included</li>
+          <li><strong>Custom engraving</strong> — date &amp; initials on Hub base</li>
+        </ul>
+
+        <a href="#" class="btn btn-filled" style="width:100%; justify-content:center; background:var(--amber);">Order the Legacy Box</a>
+        <p style="font-size:.75rem; color:var(--muted); margin-top:.8rem; text-align:center;">
+          Additional 8×10 prints from $48 each
+        </p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ APP SECTION ═══════════ -->
+<section id="app-section" class="section">
+  <div class="container">
+    <div class="app-inner">
+      <!-- Phone mockup -->
+      <div class="phone-wrap reveal">
+        <div class="phone">
+          <div class="phone-notch"></div>
+          <div class="phone-screen">
+            <div class="app-topbar">
+              <div class="app-topbar-title">EchoFrame</div>
+              <div class="app-topbar-icon">+</div>
+            </div>
+
+            <!-- Photo selector -->
+            <div class="app-photo-row">
+              <div class="app-photo-thumb selected">💍</div>
+              <div class="app-photo-thumb">👶</div>
+              <div class="app-photo-thumb">🏔</div>
+              <div class="app-photo-thumb">🎶</div>
+              <div class="app-photo-thumb">🥂</div>
+            </div>
+
+            <!-- Large photo -->
+            <div class="app-photo-large">
+              💍
+              <div class="app-photo-large-label">Wedding Ceremony — June 2019</div>
+            </div>
+
+            <!-- Waveform editor -->
+            <div class="app-waveform-section">
+              <div class="app-waveform-label">Drag to select 30-second window</div>
+              <div class="waveform-display">
+                <div class="waveform-bars-app" id="appWaveform"></div>
+                <div class="wv-window"></div>
+              </div>
+              <div class="app-time-row">
+                <span>0:00</span>
+                <span style="color:var(--amber)">▶ 1:14 → 1:44</span>
+                <span>3:22</span>
+              </div>
+            </div>
+
+            <!-- Extract button -->
+            <button class="app-extract-btn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v14M5 9l7 7 7-7"/><path d="M3 20h18"/></svg>
+              Extract Audio &amp; Order Print
+            </button>
+
+            <!-- Bottom hint -->
+            <div style="text-align:center; padding:.3rem 0;">
+              <span style="font-family:'DM Mono',monospace; font-size:.48rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted);">
+                Audio encrypted to NFC UID · No cloud storage
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Copy -->
+      <div class="app-copy reveal reveal-delay-2">
+        <p class="eyebrow">The EchoFrame App</p>
+        <h2>The editor that thinks in feelings, not frames.</h2>
+        <p>Most audio tools were built for podcasters. EchoFrame was built for the 30 seconds after your name was called, right before the vows, or the moment a three-year-old finally said "mama." The Reel-style slider makes finding that moment intuitive — because you already know exactly where it lives.</p>
+
+        <div class="app-feature">
+          <div class="app-feature-icon">⧖</div>
+          <div class="app-feature-copy">
+            <h4>Reel-Style Window Editor</h4>
+            <p>Scrub through any video. The 30-second window snaps, drags, and previews instantly. Trim with a single finger. What you hear is what gets encoded.</p>
+          </div>
+        </div>
+
+        <div class="app-feature">
+          <div class="app-feature-icon">⬇</div>
+          <div class="app-feature-copy">
+            <h4>Video-to-Audio Extraction</h4>
+            <p>Upload any video — 4K, phone footage, old MiniDV conversions. EchoFrame strips the audio, normalises levels, and gives you a clean waveform to work with. No format conversions needed.</p>
+          </div>
+        </div>
+
+        <div class="app-feature">
+          <div class="app-feature-icon">⊕</div>
+          <div class="app-feature-copy">
+            <h4>Offline-First Architecture</h4>
+            <p>Once ordered and synced, your audio lives on the Hub — not in a cloud that can be discontinued. Your memories are not a subscription.</p>
+          </div>
+        </div>
+
+        <div style="display:flex; gap:1rem; margin-top:2rem; flex-wrap:wrap;">
+          <a href="#" class="btn btn-filled">Download for iOS</a>
+          <a href="#" class="btn">Download for Android</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ STORY / PHILOSOPHY ═══════════ -->
+<section id="story" class="section">
+  <div class="container">
+    <div class="story-inner reveal">
+      <p class="eyebrow">Why EchoFrame</p>
+      <h2>Photographs were never silent.</h2>
+
+      <blockquote>
+        "Every image that has ever moved you did so because of what surrounded it — laughter in the next room, a song half-heard through an open window, the particular silence after something was said for the first time."
+      </blockquote>
+
+      <p>We built EchoFrame because the most important moments of a life are multi-sensory — and photography, as stunning as it has become, only ever captured half. The Hub and Echo-Print are a system, not a product. A ritual, not a gadget. You drop the print, and for 30 seconds, the room changes.</p>
+
+      <p>We use the same archival papers as the world's leading photographic galleries. Our NFC chips are rated for 100,000 read cycles. The Hub is machined from solid hardwood and natural stone. Nothing about this was built to be replaced.</p>
+
+      <div class="story-stats">
+        <div>
+          <div class="stat-num">30″</div>
+          <div class="stat-label">Of pure memory</div>
+        </div>
+        <div>
+          <div class="stat-num">100k</div>
+          <div class="stat-label">NFC read cycles</div>
+        </div>
+        <div>
+          <div class="stat-num">200yr</div>
+          <div class="stat-label">Archival print rating</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ TESTIMONIALS ═══════════ -->
+<section id="testimonials" class="section-sm">
+  <div class="container">
+    <div class="reveal" style="text-align:center;">
+      <p class="eyebrow">In Their Words</p>
+    </div>
+    <div class="testimonials-grid reveal">
+      <div class="testimonial">
+        <p class="testimonial-quote">I dropped our wedding day print in, and my husband — who never cries — completely fell apart. That exact 30 seconds of vows. I didn't know I'd selected the right moment until I saw his face.</p>
+        <div class="testimonial-author">
+          <strong>Clara &amp; James M.</strong>
+          Wedding Legacy Box · Auckland
+        </div>
+      </div>
+      <div class="testimonial">
+        <p class="testimonial-quote">My father passed last year. I have his laugh — the real one, from the back garden — embedded in his photo. I can visit him whenever I need to. I don't have words for what that means.</p>
+        <div class="testimonial-author">
+          <strong>Sophie T.</strong>
+          Starter Kit · London
+        </div>
+      </div>
+      <div class="testimonial">
+        <p class="testimonial-quote">I gave my daughter her first birthday print for Christmas. She's four. She drops it herself now, every night. She calls it "the picture that sings." I think that's the best product review that will ever exist.</p>
+        <div class="testimonial-author">
+          <strong>Marcus &amp; Yuki F.</strong>
+          Starter Kit · Kyoto
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ FINAL CTA ═══════════ -->
+<section id="cta" class="section">
+  <div class="container">
+    <div class="cta-inner reveal">
+      <p class="eyebrow">Begin</p>
+      <h2>What moment are you keeping?</h2>
+      <p>Every Hub tells a different story. Yours is already somewhere in your camera roll, waiting.</p>
+      <div class="cta-actions">
+        <a href="#products" class="btn btn-filled">Shop the Collection</a>
+        <a href="#demo" class="btn">Try the Experience</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ FOOTER ═══════════ -->
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <h3>Echo<span>Frame</span> Labs</h3>
+        <p>Photographs that hold sound. Memories you can touch, drop, and hear again. Made for the moments that don't end.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Products</h4>
+        <ul>
+          <li><a href="#">Starter Kit</a></li>
+          <li><a href="#">Wedding Legacy Box</a></li>
+          <li><a href="#">Echo-Prints (individual)</a></li>
+          <li><a href="#">The Hub</a></li>
+          <li><a href="#">Gift Cards</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Studio</h4>
+        <ul>
+          <li><a href="#">Our Process</a></li>
+          <li><a href="#">Materials</a></li>
+          <li><a href="#">The App</a></li>
+          <li><a href="#">FAQ</a></li>
+          <li><a href="#">Press Kit</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <ul>
+          <li><a href="#">About</a></li>
+          <li><a href="#">Sustainability</a></li>
+          <li><a href="#">Wholesale</a></li>
+          <li><a href="#">Privacy</a></li>
+          <li><a href="#">Contact</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2025 EchoFrame Labs. All rights reserved.</p>
+      <p>Designed for moments that outlast everything.</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+  /* ─── WAVEFORM BARS (App mockup) ────────── */
+  const appWf = document.getElementById('appWaveform');
+  const heights = [30,55,40,80,60,90,45,70,85,50,65,75,40,95,55,70,60,80,45,35,70,55,90,40,75,60,50,85,65,45];
+  heights.forEach((h, i) => {
+    const b = document.createElement('div');
+    b.className = 'wv-bar' + (i >= 8 && i <= 18 ? ' selected' : '');
+    b.style.height = h + '%';
+    appWf.appendChild(b);
+  });
+
+  /* ─── DEMO INTERACTION ──────────────────── */
+  const photos     = document.querySelectorAll('.photo-card');
+  const hubSlot    = document.getElementById('hubSlot');
+  const hubGlow    = document.getElementById('hubGlow');
+  const nfcPulse   = document.getElementById('nfcPulse');
+  const bars       = document.querySelectorAll('#waveformBars .bar');
+  const statusEl   = document.getElementById('demoStatus');
+
+  let playing = false;
+  let timeout1, timeout2;
+
+  const memories = {
+    wedding:  { label: 'Reading your vows…', icon: '💍' },
+    baby:     { label: 'First real laugh — 4 months…', icon: '👶' },
+    travel:   { label: 'Wind at the summit, Torres del Paine…', icon: '🏔' },
+    concert:  { label: 'First song, front row…', icon: '🎶' },
+  };
+
+  function resetHub() {
+    hubSlot.classList.remove('active');
+    hubGlow.classList.remove('active');
+    nfcPulse.classList.remove('active');
+    bars.forEach(b => b.classList.remove('active'));
+    statusEl.textContent = '';
+    playing = false;
+  }
+
+  function playMemory(memory) {
+    if (playing) return;
+    playing = true;
+
+    const m = memories[memory] || memories.wedding;
+    statusEl.textContent = 'Reading NFC…';
+    nfcPulse.classList.add('active');
+
+    timeout1 = setTimeout(() => {
+      hubSlot.classList.add('active');
+      hubGlow.classList.add('active');
+      bars.forEach(b => b.classList.add('active'));
+      statusEl.textContent = m.label;
+    }, 600);
+
+    timeout2 = setTimeout(() => {
+      resetHub();
+      statusEl.textContent = 'Drop another print to listen again.';
+      // Re-enable all cards
+      photos.forEach(p => p.classList.remove('inserted'));
+    }, 6000);
+  }
+
+  photos.forEach(card => {
+    card.addEventListener('click', () => {
+      if (playing) return;
+      clearTimeout(timeout1); clearTimeout(timeout2);
+      photos.forEach(p => p.classList.remove('inserted'));
+      card.classList.add('inserted');
+      playMemory(card.dataset.memory);
+    });
+  });
+
+  /* ─── SCROLL REVEAL ─────────────────────── */
+  const revealEls = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); }
+    });
+  }, { threshold: .12 });
+  revealEls.forEach(el => io.observe(el));
+
+  /* ─── NAV SHADOW ON SCROLL ──────────────── */
+  window.addEventListener('scroll', () => {
+    document.querySelector('nav').style.boxShadow =
+      window.scrollY > 50 ? '0 4px 40px rgba(0,0,0,.5)' : 'none';
+  });
+</script>
+</body>
+</html>
